@@ -1,17 +1,14 @@
 name: Build PokeBonk IPA
 on:
-workflow_dispatch:
+  workflow_dispatch:
 jobs:
-build:
-runs-on: macos-latest
-steps:
-- uses: actions/checkout@v5
-- name: Build IPA
-run: |
-    xcodebuild -scheme PokeBonk -archivePath PokeBonk.xcarchive archive
-    xcodebuild -exportArchive -archivePath PokeBonk.xcarchive -exportOptionsPlist export.plist -exportPath ./output
-- name: Upload IPA
-uses: actions/upload-artifact@v4
-with:
-name: PokeBonk-unsigned-ipa
-path: output/*.ipa
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Build IPA
+        run: |
+         xcodebuild -scheme PokeBonk -archivePath PokeBonk.xcarchive archive
+         xcodebuild -exportArchive -archivePath PokeBonk.xcarchive -exportPath ./IPA -exportOptionsPlist ExportOptions.plist
+         - name: Upload IPA
+         uses: actions/upload-artifact@v4
