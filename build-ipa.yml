@@ -1,0 +1,66 @@
+name: Build PokeBonk unsigned IPA
+
+# 手动触发：仓库 Actions 页 → Run workflow
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    # macos-26 镜像默认自带 Xcode 26.x（支持 iOS 26 SDK），arm64
+    runs-on: macos-26
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Show runner & Xcode version
+        run: |
+          sw_vers
+          xcodebuild -version
+          xcodebuild -showsdks | grep iphoneos || true
+
+      - name: Verify scheme
+        run: xcodebuild -list -project PokeBonk.xcodeproj
+
+      - name: Build Release (unsigned)
+        run: |
+          set -euo pipefail
+          xcodebuild \
+            -project PokeBonk.xcodeproj \
+            -scheme PokeBonk \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            build
+
+      - name: Locate built .app
+        run: |
+          set -euo pipefail
+          ls -la build/Build/Products/Release-iphoneos/
+          test -d build/Build/Products/Release-iphoneos/PokeBonk.app
+
+      - name: Package unsigned IPA
+        run: |
+          set -euo pipefail
+          rm -rf Payload
+          mkdir -p Payload
+          cp -R build/Build/Products/Release-iphoneos/PokeBonk.app Payload/
+          # 未签名构建产物里可能残留空签名目录，删掉避免与后续自签冲突
+          rm -rf Payload/PokeBonk.app/_CodeSignature
+          rm -f  Payload/PokeBonk.app/embedded.mobileprovision
+          /usr/bin/zip -qr PokeBonk-unsigned.ipa Payload
+          ls -lh PokeBonk-unsigned.ipa
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: PokeBonk-unsigned-IPA
+          path: PokeBonk-unsigned.ipa
+          if-no-files-found: error
+          retention-days: 14
