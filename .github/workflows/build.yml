@@ -8,8 +8,8 @@ steps:
 - uses: actions/checkout@v5
 - name: Build IPA
 run: |
-  xcodebuild -scheme PokeBonk -archivePath PokeBonk.xcarchive archive
-  xcodebuild -exportArchive -archivePath PokeBonk.xcarchive -exportOptionsPlist export.plist -exportPath ./output
+    xcodebuild -scheme PokeBonk -archivePath PokeBonk.xcarchive archive
+    xcodebuild -exportArchive -archivePath PokeBonk.xcarchive -exportOptionsPlist export.plist -exportPath ./output
 - name: Upload IPA
 uses: actions/upload-artifact@v4
 with:
